@@ -1,7 +1,7 @@
 
 {                                                                                
-  "name": "be.eloistree.inamedbooleantimeswitchregister",                              
-  "displayName": "I Named Boolean Time Switch Register",                        
+  "name": "be.omi.inamedbooleantimeswitchregister",                              
+  "displayName": "INamedBooleanTimeSwitchRegister",                        
   "version": "0.0.1",                         
   "unity": "2018.1",                             
   "unityRelease": "",                             
