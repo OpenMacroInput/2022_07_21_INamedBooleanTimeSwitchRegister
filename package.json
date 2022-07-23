@@ -1,0 +1,23 @@
+
+{                                                                                
+  "name": "be.eloistree.inamedbooleantimeswitchregister",                              
+  "displayName": "I Named Boolean Time Switch Register",                        
+  "version": "0.0.1",                         
+  "unity": "2018.1",                             
+  "unityRelease": "",                             
+  "description": "Group of interface and utilty with a defaul implementation of it in waiting to code it better. This package is very powerfull if you have to use boolean and ask their state through times. Else it is overkill.",                         
+  "keywords": ["Script","Tool"],                       
+  "dependencies":{},     
+  "relatedPackages":{},     
+  "samples" : [],     
+  "author" : {
+"name":"",
+"mail":"",
+"url":""},     
+  "repository":{
+"type":"Git",
+"url":"https://github.com/OpenMacroInput/2022_07_21_INamedBooleanTimeSwitchRegister.git",
+"footprint":"",
+"revision":""},     
+  "category": "Script"                   
+} 

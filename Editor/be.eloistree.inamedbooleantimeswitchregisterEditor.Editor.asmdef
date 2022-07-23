@@ -1,0 +1,16 @@
+
+{                                                                   
+            "name": "be.eloistree.inamedbooleantimeswitchregisterEditor",          
+    "references": ["be.eloistree.inamedbooleantimeswitchregister"
+],                                                              
+    "optionalUnityReferences": [],                                  
+    "includePlatforms": [                                           
+        "Editor"                                                    
+    ],                                                              
+    "excludePlatforms": [],                                         
+    "allowUnsafeCode": false,                                       
+    "overrideReferences": false,                                    
+    "precompiledReferences": [],                                    
+    "autoReferenced": true,                                         
+    "defineConstraints": []                                         
+}                                                                   
