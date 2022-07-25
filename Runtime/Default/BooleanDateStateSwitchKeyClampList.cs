@@ -9,11 +9,20 @@ public class BooleanDateStateSwitchKeyClampList
 {
     public List<BooleanDateStateSwitchKey> m_listRecentToPast = new List<BooleanDateStateSwitchKey>();
     public int m_maxKey = 1024;
+    public bool m_whenCreatedValue;
+    public DateTime m_whenCreatedDate;
 
-    public BooleanDateStateSwitchKeyClampList(int maxKey)
+    public BooleanDateStateSwitchKeyClampList(int maxKey, bool startValue)
     {
         m_maxKey = maxKey;
+        m_whenCreatedValue = startValue;
     }
+
+    public BooleanDateStateSwitchKeyClampList(int maxKey, bool startValue, DateTime now) : this(maxKey, startValue)
+    {
+        m_whenCreatedDate = now;
+    }
+
 
     public void SetWithNow(bool isTrue)
     {
@@ -77,10 +86,15 @@ public class BooleanDateStateSwitchKeyClampList
             .Where(k => k.WhenSwitchHappenedLong() >= s && k.WhenSwitchHappenedLong() <= t)
             .OrderByDescending(k => k.WhenSwitchHappenedLong()).ToArray();
     }
-
-    internal void GetStateWhenCreated(out bool isTrueValueAtStartExisting)
+    public void GetAllSwitchDateInMemory(out IBooleanDateStateSwitch[] sample)
     {
-        throw new NotImplementedException();
+        sample = m_listRecentToPast.ToArray();
+    }
+
+
+    public void GetStateWhenCreated(out bool isTrueValueAtStartExisting)
+    {
+        isTrueValueAtStartExisting = m_whenCreatedValue;
     }
 
     public void GetAllSwitchDateBetween(in DateTime from, in DateTime to, out BooleanDateStateSwitchKey[] sample)
@@ -99,7 +113,7 @@ public class BooleanDateStateSwitchKeyClampList
 
     internal void GetDateWhenCreated(out DateTime dateAtStartExisting)
     {
-        throw new NotImplementedException();
+        dateAtStartExisting = m_whenCreatedDate;
     }
 
     public void GetState(out bool startValue)
@@ -300,6 +314,13 @@ public class BooleanDateStateSwitchKeyClampList
     }
     public void GetSegmentInfoOf(in DateTime date, out bool stateIsTrue)
     {
+        GetMostFarInTime(out BooleanDateStateSwitchKey last);
+        last.GetWhenSwitchHappened(out long lk);
+        if (date.Ticks < lk) {
+            stateIsTrue = last.WasTrue();
+            return;
+        }
+
         GetSegmentAt(in date, out bool found, out int index);
 
         if (index > 1)
@@ -385,9 +406,15 @@ public class BooleanDateStateSwitchKeyClampList
         }
         else
         {
+            if (t >= m_listRecentToPast[0].WhenSwitchHappenedLong())
+            {
+                foundMatch = true;
+                indexOldSide = 0;
+                return;
+            }
             for (int i = 0; i < m_listRecentToPast.Count - 1; i++)
             {
-                if (t < m_listRecentToPast[i].WhenSwitchHappenedLong()
+                if (t <= m_listRecentToPast[i].WhenSwitchHappenedLong()
                     && t >= m_listRecentToPast[i + 1].WhenSwitchHappenedLong())
                 {
                     foundMatch = true;

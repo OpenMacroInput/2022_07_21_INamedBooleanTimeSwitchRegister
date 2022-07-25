@@ -3,10 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface INamedBooleanTimeSwitchRegister: INamedBooleanTimeSwitchRegisterGet, INamedBooleanTimeSwitchRegisterSet
-{
 
+
+
+public interface INamedBooleanTimeSwitchRegister : INamedBooleanTimeSwitchRegisterGet, INamedBooleanTimeSwitchRegisterSet
+{
 }
+
+/// Small warning Nano second is not handle by C# in DateTime but are use as Tick. A tick is 100 nanoseconds. so you have 10 000 tick under the milliseconds or 10000(00) tick in milliseconds a
+/// And 10000000 tick in seconds. 
+//m_moreRecentTimeTick = now.Ticks - firstSwitchDate.Ticks;
+//m_moreRecentTimeMs = (long)(m_moreRecentTimeTick / 10000.0);
+//m_moreRecentTimeSeconds = (long)(m_moreRecentTimeTick / 10000000.0);
 public interface INamedBooleanTimeSwitchRegisterGet
 {
     public void IsBooleanRegistered( in string namedboolean, out bool existing);
@@ -29,12 +37,31 @@ public interface INamedBooleanTimeSwitchRegisterGet
     
     public void GetElapsedTimeInNanoSecondsAt(in DateTime atDate, in string namedboolean, out long nanoSeconds, out DateTime switchOldestPart);
     public void GetAllSwitchDateBetween(in DateTime from, in DateTime to, in string namedboolean, out IBooleanDateStateSwitch[] sample);
+    public void GetAllSwitchDateFor( in string namedboolean, out IBooleanDateStateSwitch[] sample);
     public void GetLimitesSwitchOfBoolean(in string namedboolean, out IBooleanDateStateSwitch mostRecent, out IBooleanDateStateSwitch switchMostOld);
     public void GetTrueFalseRatio(in DateTime from, in DateTime to, in string namedboolean, out double pourcentTrue);
-    public void GetTrueFalseTimeInNanoseconds(in DateTime from, in DateTime to, in string namedboolean, out long nanoSecondTrue, out long nanoSecondFalse, out long nanoSecondTotalObserved);
+    public void GetTrueFalseTimeInTick(in DateTime from, in DateTime to, in string namedboolean, out long nanoSecondTrue, out long nanoSecondFalse, out long nanoSecondTotalObserved);
     public void GetSegmentBetweenTwoSwitchAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateDualSwitchSegment segment);
     public void GetSegmentOldSwitchSideAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateSwitch switchKeyOld);
     public void GetSegmentRecentSwitchSideAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateSwitch switchKeyRecent);
+
+
+}
+
+/// <summary>
+/// App memory is not illimited. but in some application you need to have continus track for hours of the boolean history. 
+/// In those case if the developer use this classe you can recover a copy of the value that are not used any more.
+/// Why a struct copy, because for performance the programmer creatin a register should use a pool of object. So you don't want a value that will change soon or already changed.
+/// </summary>
+public interface INamedBooleanTimeSwitchRegisterBinHandle {
+
+    public delegate void SwitchPushedOutOfMemory(out IBooleanDateStateSwitch outOfLimitCopyOfValue);
+    public bool HasGlobalBinListener();
+    public void AddBinListener(in SwitchPushedOutOfMemory binListener);
+    public void RemoveBinListener(in SwitchPushedOutOfMemory binListener);
+    public bool HasLocalBinListener(in string namedboolean);
+    public void AddBinListener(in string namedboolean, in SwitchPushedOutOfMemory binListener);
+    public void RemoveBinListener(in string namedboolean, in SwitchPushedOutOfMemory binListener);
 }
 
 
