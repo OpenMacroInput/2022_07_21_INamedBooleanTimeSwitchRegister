@@ -73,17 +73,17 @@ public class BooleanDateStateSwitchKeyClampList
         }
     }
 
-    public void GetAllSwitchDateBetween(in DateTime from, in DateTime to, out IBooleanDateStateSwitch[] sample)
+    public void GetAllSwitchDateBetween(in DateTime recentDate, in DateTime oldDate, out IBooleanDateStateSwitch[] sample)
     {
-        long s = from.Ticks, t = to.Ticks;
-        if (s < t)
+        long recentLong = recentDate.Ticks, oldLong = oldDate.Ticks;
+        if (recentLong < oldLong)
         {
-            long tmp = s;
-            s = t;
-            t = tmp;
+            long tmp = recentLong;
+            recentLong = oldLong;
+            oldLong = tmp;
         }
         sample = m_listRecentToPast
-            .Where(k => k.WhenSwitchHappenedLong() >= s && k.WhenSwitchHappenedLong() <= t)
+            .Where(k => k.WhenSwitchHappenedLong() <= recentLong && k.WhenSwitchHappenedLong() >= oldLong)
             .OrderByDescending(k => k.WhenSwitchHappenedLong()).ToArray();
     }
     public void GetAllSwitchDateInMemory(out IBooleanDateStateSwitch[] sample)
@@ -99,15 +99,15 @@ public class BooleanDateStateSwitchKeyClampList
 
     public void GetAllSwitchDateBetween(in DateTime from, in DateTime to, out BooleanDateStateSwitchKey[] sample)
     {
-        long s = from.Ticks, t = to.Ticks;
-        if (s < t)
+        long recentLong = from.Ticks, oldLong = to.Ticks;
+        if (recentLong < oldLong)
         {
-            long tmp = s;
-            s = t;
-            t = tmp;
+            long tmp = recentLong;
+            recentLong = oldLong;
+            oldLong = tmp;
         }
         sample = m_listRecentToPast
-            .Where(k => k.WhenSwitchHappenedLong() >= s && k.WhenSwitchHappenedLong() <= t)
+            .Where(k => k.WhenSwitchHappenedLong() <= recentLong && k.WhenSwitchHappenedLong() >= oldLong)
             .OrderByDescending(k => k.WhenSwitchHappenedLong()).ToArray();
     }
 
@@ -241,11 +241,13 @@ public class BooleanDateStateSwitchKeyClampList
 
     public void GetTrueFalseRatio(in DateTime start, in DateTime to, out double pourcentTrue)
     {
-        GetTrueFalseTimeInNanoseconds(start, to, out long nanoTrue, out long nanoFalse, out long total);
+        GetTrueFalseTimeInTickRef(start, to, out long nanoTrue, out long nanoFalse, out long total);
         pourcentTrue = ((double)nanoTrue) / ((double)total);
     }
 
-    public void GetTrueFalseTimeInNanoseconds(DateTime startRecent, DateTime toOlder, out long nanoSecondTrue, out long nanoSecondFalse, out long nanoSecondsTotalObserved)
+    public void GetTrueFalseTimeInTickRef(DateTime startRecent, DateTime toOlder,
+         out long nanoSecondTrue, out long nanoSecondFalse,
+         out long nanoSecondsTotalObserved)
     {
 
         if (startRecent < toOlder)
@@ -255,11 +257,11 @@ public class BooleanDateStateSwitchKeyClampList
             toOlder = tmp;
         }
 
-        GetAllSwitchDateBetween(in startRecent, in toOlder, out BooleanDateStateSwitchKey[] sample);
+        GetAllSwitchDateBetween(in startRecent, in toOlder,  out IBooleanDateStateSwitch[] sample);
         long startRecentLong = startRecent.Ticks;
         long startOldLong = toOlder.Ticks;
-        nanoSecondTrue = startRecentLong - startOldLong;
         nanoSecondsTotalObserved = startRecentLong - startOldLong;
+        nanoSecondTrue = nanoSecondsTotalObserved;
 
 
         for (int i = 1; i < sample.Length - 1; i++)
@@ -270,19 +272,31 @@ public class BooleanDateStateSwitchKeyClampList
                 nanoSecondTrue -= tickTime;
             }
         }
-        BooleanDateStateSwitchKey start = sample[0];
-        if (sample[0].WasFalse())
+        if (sample.Length > 0)
         {
-            nanoSecondTrue -= startRecent.Ticks - sample[0].WhenSwitchHappenedLong();
+            IBooleanDateStateSwitch start = sample[0];
+            if (sample[0].TurnedFalse())
+            {
+                sample[0].GetWhenSwitchHappened(out long l);
+                nanoSecondTrue -= startRecent.Ticks - l;
+            }
+            if (sample[sample.Length - 1].WasFalse())
+            {
+                sample[sample.Length - 1].GetWhenSwitchHappened(out long l);
+                nanoSecondTrue -= l - toOlder.Ticks;
+            }
+            nanoSecondFalse = nanoSecondsTotalObserved - nanoSecondTrue;
         }
-        if (sample[sample.Length - 1].TurnedTrue())
+        else
         {
-            nanoSecondTrue -= sample[sample.Length - 1].WhenSwitchHappenedLong() - toOlder.Ticks;
+            nanoSecondsTotalObserved = startRecentLong - startOldLong;
+            DateTime d =new DateTime( startOldLong + nanoSecondsTotalObserved / 2);
+            GetStateAt(in d, out bool state);
+            nanoSecondTrue = state ? nanoSecondsTotalObserved : 0;
+            nanoSecondFalse = state ? 0 : nanoSecondsTotalObserved;
         }
-        nanoSecondFalse = nanoSecondsTotalObserved - nanoSecondTrue;
     }
 
-    
     public void SetPastSwitchManually(in DateTime dateToInject, in bool newValue)
     {
         int c = m_listRecentToPast.Count;
@@ -346,10 +360,13 @@ public class BooleanDateStateSwitchKeyClampList
     {
         GetSegmentInfoOf(m_listRecentToPast[IndexRecent], m_listRecentToPast[indexOld], out tickTime, out state);
     }
-    public void GetSegmentInfoOf(in BooleanDateStateSwitchKey recent, in BooleanDateStateSwitchKey old, out long tickTime, out bool state)
+    public void GetSegmentInfoOf(in IBooleanDateStateSwitch recent, in IBooleanDateStateSwitch old, out long tickTime, out bool state)
     {
-        tickTime = recent.WhenSwitchHappenedLong() - old.WhenSwitchHappenedLong();
-        state = old.GetSwitchType() == BooleanSwithType.FalseToTrue;
+        recent.GetWhenSwitchHappened(out long rl); 
+        old.GetWhenSwitchHappened(out long ol);
+        tickTime =  rl - ol;
+        old.GetSwitchType(out BooleanSwithType sw);
+        state = sw == BooleanSwithType.FalseToTrue;
     }
 
     public void GetSegmentInfoOf(in DateTime date, out long tickTimeOne, out bool state)

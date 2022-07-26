@@ -22,6 +22,7 @@ public interface INamedBooleanTimeSwitchRegisterGet
     public void GetSwitchCount( in string namedboolean, out int switchCount);
 
     public bool IsDateTimeInInvalideTrackZone(in string namedboolean, in DateTime date);
+    public bool IsDateTimeInValideTrackZone(in string namedboolean, in DateTime date);
     public void GetStartExistingTime(in string namedboolean, out  DateTime dateAtStartExisting);
     public void GetStartExistingInitialState(in string namedboolean, out bool isTrueValueAtStartExisting);
     public bool WasTrueAt(in DateTime atDate, in string namedboolean); // Throw Exception if not found
@@ -32,20 +33,18 @@ public interface INamedBooleanTimeSwitchRegisterGet
 
     public void GetStateNow(in string namedboolean, out bool state);
     public void GetStateAt(in DateTime atDate, in string namedboolean, out bool state);
-    
+ 
     public void GetSegmentLimitsAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateSwitch switchMoreRecent, out IBooleanDateStateSwitch switchMostOld);
-    
     public void GetElapsedTimeInNanoSecondsAt(in DateTime atDate, in string namedboolean, out long nanoSeconds, out DateTime switchOldestPart);
     public void GetAllSwitchDateBetween(in DateTime from, in DateTime to, in string namedboolean, out IBooleanDateStateSwitch[] sample);
     public void GetAllSwitchDateFor( in string namedboolean, out IBooleanDateStateSwitch[] sample);
     public void GetLimitesSwitchOfBoolean(in string namedboolean, out IBooleanDateStateSwitch mostRecent, out IBooleanDateStateSwitch switchMostOld);
     public void GetTrueFalseRatio(in DateTime from, in DateTime to, in string namedboolean, out double pourcentTrue);
     public void GetTrueFalseTimeInTick(in DateTime from, in DateTime to, in string namedboolean, out long nanoSecondTrue, out long nanoSecondFalse, out long nanoSecondTotalObserved);
-    public void GetSegmentBetweenTwoSwitchAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateDualSwitchSegment segment);
+    //public void GetSegmentBetweenTwoSwitchAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateDualSwitchSegment segment);
     public void GetSegmentOldSwitchSideAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateSwitch switchKeyOld);
     public void GetSegmentRecentSwitchSideAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateSwitch switchKeyRecent);
-
-
+ 
 }
 
 /// <summary>
@@ -90,7 +89,8 @@ public interface IBooleanDateStateSwitch
 }
 
 
-public interface IBooleanDateStateDualSwitchSegment {
+public interface IBooleanDateStateDualSwitchSegment
+{
     public void GetSwitchMostRecent(out IBooleanDateStateSwitch switchType);
     public void GetSwitchMostOlder(out IBooleanDateStateSwitch switchType);
     public void GetDurationInNanoseconds(out long duration);

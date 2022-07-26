@@ -30,9 +30,20 @@ public class DefaultNamedBooleanTimeSwitchRegisterEasyCode : INamedBooleanTimeSw
     public void GetElapsedTimeInNanoSecondsAt(in DateTime atDate, in string namedboolean, out long nanoSeconds, out  DateTime switchOldestPart)
     {
         GetSegmentLimitsAt(in atDate, in namedboolean, out IBooleanDateStateSwitch recent, out IBooleanDateStateSwitch old);
-        recent.GetWhenSwitchHappened(out long r);
-        old.GetWhenSwitchHappened(out long o);
-        nanoSeconds = r - o;
+        if (recent == null && old == null) {
+            throw new Exception("Check that the time is valide before using this methode");
+        }
+        if (recent == null && old != null)
+        {
+            old.GetWhenSwitchHappened(out long o);
+            nanoSeconds = DateTime.Now.Ticks - o;
+        }
+        else {
+            recent.GetWhenSwitchHappened(out long r);
+            old.GetWhenSwitchHappened(out long o);
+            nanoSeconds = r - o;
+        }
+        
         old.GetWhenSwitchHappened(out switchOldestPart);
 
     }
@@ -155,6 +166,10 @@ public class DefaultNamedBooleanTimeSwitchRegisterEasyCode : INamedBooleanTimeSw
     {
         return !(date <= DateTime.Now && date.Ticks >= m_createdDate.Ticks);
     }
+    public bool IsDateTimeInValideTrackZone(in string namedboolean, in DateTime date)
+    {
+        return date <= DateTime.Now && date.Ticks >= m_createdDate.Ticks;
+    }
 
     public void SetNow(in string namedBoolean, in bool value)
     {
@@ -230,22 +245,72 @@ public class DefaultNamedBooleanTimeSwitchRegisterEasyCode : INamedBooleanTimeSw
         switchKeyRecent = recentSide;
     }
 
-    public void GetSegmentBetweenTwoSwitchAt(in DateTime atDate, out IBooleanDateStateDualSwitchSegment segment)
+    public void GetTrueFalseTimeInTick(in DateTime from, in DateTime to,
+        in string namedboolean, out long tickTimeTrue, out long tickTimeFalse,
+        out long tickTotalObserved)
     {
-        throw new NotImplementedException();
+        GetTrueFalseTimeInTickRef( from,  to, in namedboolean, 
+           out tickTimeTrue, out tickTimeFalse,
+           out tickTotalObserved);
+    }
+        public void GetTrueFalseTimeInTickRef( DateTime startRecent,  DateTime toOlder,
+        in string namedboolean, out long nanoSecondTrue, out long nanoSecondFalse,
+        out long nanoSecondsTotalObserved)
+        {
+
+        if (startRecent < toOlder)
+        {
+            DateTime tmp = startRecent;
+            startRecent = toOlder;
+            toOlder = tmp;
+        }
+
+        GetAllSwitchDateBetween(in startRecent, in toOlder, in namedboolean, out IBooleanDateStateSwitch[] sample);
+        long startRecentLong = startRecent.Ticks;
+        long startOldLong = toOlder.Ticks;
+        nanoSecondsTotalObserved = startRecentLong - startOldLong;
+        nanoSecondTrue = nanoSecondsTotalObserved;
+
+
+        for (int i = 1; i < sample.Length - 1; i++)
+        {
+            GetSegmentInfoOf(in sample[i], in sample[i + 1], out long tickTime, out bool isTrueState);
+            if (!isTrueState)
+            {
+                nanoSecondTrue -= tickTime;
+            }
+        }
+        if (sample.Length > 0)
+        {
+            IBooleanDateStateSwitch start = sample[0];
+            if (sample[0].TurnedFalse())
+            {
+                sample[0].GetWhenSwitchHappened(out long l);
+                nanoSecondTrue -= startRecent.Ticks - l;
+            }
+            if (sample[sample.Length - 1].WasFalse())
+            {
+                sample[sample.Length - 1].GetWhenSwitchHappened(out long l);
+                nanoSecondTrue -= l - toOlder.Ticks;
+            }
+            nanoSecondFalse = nanoSecondsTotalObserved - nanoSecondTrue;
+        }
+        else {
+            GetStateAt(in startRecent, in namedboolean, out bool state);
+            nanoSecondsTotalObserved = startRecentLong - startOldLong;
+            nanoSecondTrue = state ? nanoSecondsTotalObserved : 0;
+            nanoSecondFalse = state ? 0:nanoSecondsTotalObserved ;
+        }
     }
 
-    public void GetSegmentBetweenTwoSwitchAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateDualSwitchSegment segment)
+    private void GetSegmentInfoOf(in IBooleanDateStateSwitch recent, in IBooleanDateStateSwitch old, 
+        out long tickTime, out bool isTrueState)
     {
-        throw new NotImplementedException();
+        isTrueState = old.TurnedTrue();
+        old.GetWhenSwitchHappened(out long o);
+        recent.GetWhenSwitchHappened(out long r);
+        tickTime = r - o;
     }
-    public void GetTrueFalseTimeInTick(in DateTime from, in DateTime to, in string namedboolean, out long tickTimeTrue, out long tickTimeFalse, out long tickTotalObserved)
-    {
-
-        throw new NotImplementedException();
-    }
-
-   
 
     public void GetAllSwitchDateFor(in string namedboolean, out IBooleanDateStateSwitch[] sample)
     {

@@ -19,6 +19,8 @@ public class TDD_NamedBooleanTimeSwitch : MonoBehaviour
     public bool m_stateAtIsTrue;
     public bool m_wasTrue;
     public bool m_wasFalse;
+    public long m_segmentTime;
+    public double m_segmentTimeSeconds;
 
     public bool m_currentState;
     public bool m_moreRecentSwitch;
@@ -36,6 +38,27 @@ public class TDD_NamedBooleanTimeSwitch : MonoBehaviour
 
     public DebugSwitch m_mostRecentKey;
     public DebugSwitch m_mostOldKey;
+
+    public DebugSwitch m_mostRecentKeyAround;
+    public DebugSwitch m_mostOldKeyAround;
+
+
+    [Header("From To Action")]
+    public float m_relativeFrom=0;
+    public float m_relativeTo=3;
+    public bool m_isOldRelativeValide ;
+    public bool m_isRecentRelativeValide ;
+
+    public int      m_switchCountR;
+    public bool     m_isTrueAtRecentLimitR;
+    public int      m_trueCountR;
+    public int      m_falseCountR;
+    public bool     m_isTrueAtOldLimitR;
+    public double   m_trueSecondsObservedR;
+    public double   m_falseSecondsObservedR;
+    public double   m_totalSecondsObservedR;
+    public double    m_percentTrueR;
+
 
     void Start()
     {
@@ -65,6 +88,9 @@ public class TDD_NamedBooleanTimeSwitch : MonoBehaviour
         //Code later when focus
         //void GetStartExistingInitialState(in string namedboolean, out bool isTrueValueAtStartExisting);
 
+        DateTime recentRelativeTimeBetween = now.AddSeconds(-m_relativeFrom);
+        DateTime oldRelativeTimeBetween = now.AddSeconds(-m_relativeTo);
+
 
         m_register.IsBooleanRegistered(in m_namedBool, out m_isRegistered);
         //void IsBooleanRegistered(in string namedboolean, out bool existing);
@@ -87,7 +113,7 @@ public class TDD_NamedBooleanTimeSwitch : MonoBehaviour
         m_mostRecentKey.Set(r);
         m_mostOldKey.Set(o);
 
-        m_isDateValide = !m_register.IsDateTimeInInvalideTrackZone(in m_namedBool, in relativeTestTime);
+        m_isDateValide = m_register.IsDateTimeInValideTrackZone(in m_namedBool, in relativeTestTime);
         ///bool IsDateTimeInInvalideTrackZone(in m_namedBool, in relativeTestTime);
         if (m_isDateValide && m_hasSwitch)
         {
@@ -104,26 +130,96 @@ public class TDD_NamedBooleanTimeSwitch : MonoBehaviour
             m_wasFalse = m_register.WasFalseAt(in relativeTestTime, in m_namedBool);
             //bool WasFalseAt(in DateTime atDate, in string namedboolean); // Throw Exception if not found
 
+            m_register.GetElapsedTimeInNanoSecondsAt(
+                   in relativeTestTime,
+                   in m_namedBool,
+                   out m_segmentTime,
+                   out DateTime switchOldestPart);
+            DateTimeTickUtility.TickToSeconds(in m_segmentTime, out m_segmentTimeSeconds);
 
+
+
+            if (m_switchCount > 1) {
+                m_register.GetSegmentLimitsAt(in relativeTestTime, in  m_namedBool, out IBooleanDateStateSwitch switchKeyRecent, out IBooleanDateStateSwitch switchKeyOld );
+                if (switchKeyOld == null) m_mostRecentKeyAround.ResetEmpty();
+                else m_mostRecentKeyAround.Set(switchKeyOld);
+                if (switchKeyRecent == null) m_mostOldKeyAround.ResetEmpty();
+                else m_mostOldKeyAround.Set(switchKeyRecent);
+            }
         }
 
 
+        //////////////////
+       
 
-        //void GetSwitchCountAndLimitBetween(in DateTime from, in DateTime to, in string namedboolean, out bool mostRecentValueStart, out bool mostOldValueStart, out int switchToTrue, out int switchToFalse);
-        //void GetSwitchCountBetween(in DateTime from, in DateTime to, in string namedboolean, out int switchToTrue, out int switchToFalse);
+        if (oldRelativeTimeBetween.Ticks < createdDate.Ticks)
+            oldRelativeTimeBetween = createdDate;
+        if (recentRelativeTimeBetween.Ticks > now.Ticks)
+            recentRelativeTimeBetween = now;
+
+        m_register.GetAllSwitchDateBetween(in recentRelativeTimeBetween, in oldRelativeTimeBetween
+           , m_namedBool, out IBooleanDateStateSwitch[] sampleBetween);
+
+         m_isOldRelativeValide    =  m_register.IsDateTimeInValideTrackZone(in m_namedBool, in oldRelativeTimeBetween);
+         m_isRecentRelativeValide = m_register.IsDateTimeInValideTrackZone(in m_namedBool, in recentRelativeTimeBetween);
 
 
-        //void GetSegmentLimitsAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateSwitch switchMoreRecent, out IBooleanDateStateSwitch switchMostOld);
+        if (m_isRecentRelativeValide && m_isOldRelativeValide) { 
+        
+            m_switchCountR = sampleBetween.Length;
+            if (sampleBetween.Length == 0)
+            {
+                m_trueCountR = 0;
+                m_falseCountR = 0;
+                m_register.GetStateAt(in recentRelativeTimeBetween,
+                    in m_namedBool, out bool state);
+                m_isTrueAtRecentLimitR = state;
+                m_isTrueAtOldLimitR = state;
+                DateTimeTickUtility.TickToSeconds(
+                    recentRelativeTimeBetween.Ticks - oldRelativeTimeBetween.Ticks, out m_totalSecondsObservedR);
+                m_trueSecondsObservedR = state ? m_totalSecondsObservedR : 0;
+                m_falseSecondsObservedR = state ? 0 : m_totalSecondsObservedR;
+                m_percentTrueR = state ? 1f : 0f;
+            }
+            else if (sampleBetween.Length > 0)
+            {
+                //void GetSwitchCountBetween(in DateTime from, in DateTime to, in string namedboolean, out int switchToTrue, out int switchToFalse);
+                m_register.GetSwitchCountBetween(
+                    in recentRelativeTimeBetween,
+                    in oldRelativeTimeBetween,
+                    in m_namedBool,
+                    out m_trueCountR,
+                    out m_falseCountR);
+                //void GetSwitchCountAndLimitBetween(in DateTime from, in DateTime to, in string namedboolean, out bool mostRecentValueStart, out bool mostOldValueStart, out int switchToTrue, out int switchToFalse);
+                m_register.GetSwitchCountAndLimitBetween(
+                   in recentRelativeTimeBetween,
+                   in oldRelativeTimeBetween,
+                   in m_namedBool,
+                   out m_isTrueAtRecentLimitR,
+                   out m_isTrueAtOldLimitR,
+                   out m_trueCountR,
+                   out m_falseCountR);
+            }
 
-        //void GetElapsedTimeInNanoSecondsAt(in DateTime atDate, in string namedboolean, out long nanoSeconds, out DateTime switchOldestPart);
-        //void GetAllSwitchDateBetween(in DateTime from, in DateTime to, in string namedboolean, out IBooleanDateStateSwitch[] sample);
-        //void GetLimitesSwitchOfBoolean(in string namedboolean, out IBooleanDateStateSwitch mostRecent, out IBooleanDateStateSwitch switchMostOld);
-        //void GetTrueFalseRatio(in DateTime from, in DateTime to, in string namedboolean, out double pourcentTrue);
-        //void GetTrueFalseTimeInNanoseconds(in DateTime from, in DateTime to, in string namedboolean, out long nanoSecondTrue, out long nanoSecondFalse, out long nanoSecondTotalObserved);
-        //void GetSegmentBetweenTwoSwitchAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateDualSwitchSegment segment);
-        //void GetSegmentOldSwitchSideAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateSwitch switchKeyOld);
-        //void GetSegmentRecentSwitchSideAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateSwitch switchKeyRecent);
+            //void GetTrueFalseTimeInNanoseconds(in DateTime from, in DateTime to, in string namedboolean, out long nanoSecondTrue, out long nanoSecondFalse, out long nanoSecondTotalObserved);
+            m_register.GetTrueFalseTimeInTick(
+               in recentRelativeTimeBetween,
+               in oldRelativeTimeBetween,
+               in m_namedBool,
+               out long truetick,
+               out long falsetick,
+               out long totaltick
+               );
+            DateTimeTickUtility.TickToSeconds(in truetick, out m_trueSecondsObservedR);
+            DateTimeTickUtility.TickToSeconds(in falsetick, out m_falseSecondsObservedR);
+            DateTimeTickUtility.TickToSeconds(in totaltick, out m_totalSecondsObservedR);
 
+            m_register.GetTrueFalseRatio(
+                in recentRelativeTimeBetween,
+               in oldRelativeTimeBetween,
+               in m_namedBool, out m_percentTrueR);
+
+        }
 
     }
 
@@ -147,6 +243,16 @@ public class TDD_NamedBooleanTimeSwitch : MonoBehaviour
             switchKey.GetSwitchType(out m_type);
             m_turnTrue = switchKey.TurnedTrue();
             m_wasTrue = switchKey.WasTrue();
+        }
+
+        public void ResetEmpty()
+        {
+            m_dateAsLongTick = 0;
+            m_date = DateTime.Now;
+            m_dateAsString="x";
+            m_type = BooleanSwithType.TrueToFalse;
+            m_turnTrue = false;
+            m_wasTrue = false;
         }
     }
 

@@ -252,6 +252,8 @@ MonoBehaviour:
   m_stateAtIsTrue: 0
   m_wasTrue: 0
   m_wasFalse: 0
+  m_segmentTime: 0
+  m_segmentTimeSeconds: 0
   m_currentState: 0
   m_moreRecentSwitch: 0
   m_moreOldSwitch: 0
@@ -275,3 +277,28 @@ MonoBehaviour:
     m_type: 0
     m_turnTrue: 0
     m_wasTrue: 0
+  m_mostRecentKeyAround:
+    m_dateAsLongTick: 0
+    m_dateAsString: 
+    m_type: 0
+    m_turnTrue: 0
+    m_wasTrue: 0
+  m_mostOldKeyAround:
+    m_dateAsLongTick: 0
+    m_dateAsString: 
+    m_type: 0
+    m_turnTrue: 0
+    m_wasTrue: 0
+  m_relativeFrom: 0
+  m_relativeTo: 4
+  m_isOldRelativeValide: 0
+  m_isRecentRelativeValide: 0
+  m_switchCountR: 0
+  m_isTrueAtRecentLimitR: 0
+  m_trueCountR: 0
+  m_falseCountR: 0
+  m_isTrueAtOldLimitR: 0
+  m_trueSecondsObservedR: 0
+  m_falseSecondsObservedR: 0
+  m_totalSecondsObservedR: 0
+  m_percentTrueR: 0
