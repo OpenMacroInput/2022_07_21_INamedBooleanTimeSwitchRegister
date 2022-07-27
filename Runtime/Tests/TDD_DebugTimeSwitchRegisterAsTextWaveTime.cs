@@ -28,7 +28,7 @@ public class TDD_DebugTimeSwitchRegisterAsTextWaveTime : MonoBehaviour
     //↓↕↑
     public void Refresh() {
         NamedBooleanTimeSwitchStringUtility
-            .GetStringDescriptionByMilliscondsSegment(
+            .GetStringDescriptionByMillisecondsSegment(
             m_toDebug.m_register,
             in m_toDebug.m_namedBool,
             out m_debugText,

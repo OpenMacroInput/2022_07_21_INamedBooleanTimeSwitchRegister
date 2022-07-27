@@ -42,11 +42,11 @@ public class BooleanDateStateSwitchKey : IBooleanDateStateSwitch
     {
         return m_switch;
     }
-    public long WhenSwitchHappenedLong()
+    public long GetWhenSwitchHappenedAsLong()
     {
         return m_whenItSwithcAsDateTimeLong;
     }
-    public DateTime WhenSwitchHappenedDate()
+    public DateTime GetWhenSwitchHappenedAsDate()
     {
         return new DateTime(m_whenItSwithcAsDateTimeLong);
     }
@@ -73,5 +73,34 @@ public class BooleanDateStateSwitchKey : IBooleanDateStateSwitch
     public bool TurnedFalse()
     {
         return m_switch == BooleanSwithType.TrueToFalse;
+    }
+
+    
+    public bool IsMoreRecentThatKey(in DateTime date, in bool orEqual)
+    {
+        if(orEqual)
+            return date.Ticks >= m_whenItSwithcAsDateTimeLong;
+        return date.Ticks > m_whenItSwithcAsDateTimeLong;
+    }
+
+    public bool IsMoreRecentThatKey(in long dateAsTicks, in bool orEqual)
+    {
+        if (orEqual)
+            return dateAsTicks >= m_whenItSwithcAsDateTimeLong;
+        return dateAsTicks > m_whenItSwithcAsDateTimeLong;
+    }
+
+    public bool IsMoreOldThatKey(in DateTime date, in bool orEqual)
+    {
+        if (orEqual)
+            return date.Ticks <= m_whenItSwithcAsDateTimeLong;
+        return date.Ticks < m_whenItSwithcAsDateTimeLong;
+    }
+
+    public bool IsMoreOldThatKey(in long dateAsTicks, in bool orEqual)
+    {
+        if (orEqual)
+            return dateAsTicks <= m_whenItSwithcAsDateTimeLong;
+        return dateAsTicks < m_whenItSwithcAsDateTimeLong;
     }
 }

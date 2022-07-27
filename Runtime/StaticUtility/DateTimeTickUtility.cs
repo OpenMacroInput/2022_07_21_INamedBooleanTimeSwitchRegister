@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,4 +23,33 @@ public class DateTimeTickUtility
         => milliseconds =tick / (double) ratioTickInMilliseconds;
     public static void TickToSeconds(in long tick, out double seconds)
         => seconds = tick / (double)ratioTickInSeconds;
+
+
+    
+}
+public class DateTimeSwitchUtility
+{
+
+
+    public static void GetDateLong(in DateTime from, in DateTime to, out long recentLong, out long oldLong)
+    {
+        recentLong = from.Ticks; oldLong = to.Ticks;
+        if (recentLong < oldLong)
+        {
+            long tmp = recentLong;
+            recentLong = oldLong;
+            oldLong = tmp;
+        }
+    }
+    public static void GetDateLong(in DateTime from, in DateTime to, out DateTime recentLong, out DateTime oldLong)
+    {
+        recentLong = from; oldLong = to;
+        if (recentLong < oldLong)
+        {
+            DateTime tmp = recentLong;
+            recentLong = oldLong;
+            oldLong = tmp;
+        }
+    }
+
 }

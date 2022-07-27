@@ -76,12 +76,18 @@ public class TDD_NamedBooleanTimeSwitch : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.Space))
             m_register.SetNow(in m_namedBool, false);
 
+        if (Input.GetKeyDown(KeyCode.LeftControl))
+            m_register.SetNow(in m_namedBool, true);
+
+        if (Input.GetKeyUp(KeyCode.LeftControl))
+            m_register.SetNow(in m_namedBool, false);
+
         DateTime now = DateTime.Now;
         DateTime relativeTestTime = DateTime.Now.AddSeconds(-m_timeRelativeToNowToTest);
         m_nowDate = DateTime.Now.ToString();
         m_relativeDate = relativeTestTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt ") ; 
-        m_register.GetStartExistingInitialState(in m_namedBool, out m_createdStateDate);
-        m_register.GetStartExistingTime(in m_namedBool, out  DateTime createdDate);
+        m_register.GetCollectionInitialState(in m_namedBool, out m_createdStateDate);
+        m_register.GetCollectionExistingTime(in m_namedBool, out  DateTime createdDate);
         m_createdDate = createdDate.ToString();
         //Code later when focus
         //void GetStartExistingTime(in string namedboolean, out DateTime dateAtStartExisting);
@@ -108,7 +114,7 @@ public class TDD_NamedBooleanTimeSwitch : MonoBehaviour
         m_register.GetSwitchCount(in m_namedBool, out m_switchCount);
         //void GetSwitchCount(in string namedboolean, out int switchCount);
 
-        m_register.GetLimitesSwitchOfBoolean(in m_namedBool, out IBooleanDateStateSwitch r, out IBooleanDateStateSwitch o);
+        m_register.GetKeyAtBordersOfBoolean(in m_namedBool, out IBooleanDateStateSwitch r, out IBooleanDateStateSwitch o);
         r.GetWhenSwitchHappened(out DateTime firstSwitchDate);
         m_mostRecentKey.Set(r);
         m_mostOldKey.Set(o);
@@ -130,21 +136,31 @@ public class TDD_NamedBooleanTimeSwitch : MonoBehaviour
             m_wasFalse = m_register.WasFalseAt(in relativeTestTime, in m_namedBool);
             //bool WasFalseAt(in DateTime atDate, in string namedboolean); // Throw Exception if not found
 
-            m_register.GetElapsedTimeInNanoSecondsAt(
-                   in relativeTestTime,
-                   in m_namedBool,
-                   out m_segmentTime,
-                   out DateTime switchOldestPart);
-            DateTimeTickUtility.TickToSeconds(in m_segmentTime, out m_segmentTimeSeconds);
+            m_register.GetMostOldestKey(in m_namedBool, out IBooleanDateStateSwitch oldest)
+            ;
+            if (oldest.IsMoreRecentThatKey(in relativeTestTime, true))
+            {
+                m_register.GetElapsedTimeAsTicksAt(
+                       in relativeTestTime,
+                       in m_namedBool,
+                       out m_segmentTime,
+                       out DateTime switchOldestPart);
+                DateTimeTickUtility.TickToSeconds(in m_segmentTime, out m_segmentTimeSeconds);
+            }
+            else {
+                m_segmentTime = 0; m_segmentTimeSeconds = 0;
+            }
 
 
 
             if (m_switchCount > 1) {
-                m_register.GetSegmentLimitsAt(in relativeTestTime, in  m_namedBool, out IBooleanDateStateSwitch switchKeyRecent, out IBooleanDateStateSwitch switchKeyOld );
-                if (switchKeyOld == null) m_mostRecentKeyAround.ResetEmpty();
-                else m_mostRecentKeyAround.Set(switchKeyOld);
-                if (switchKeyRecent == null) m_mostOldKeyAround.ResetEmpty();
-                else m_mostOldKeyAround.Set(switchKeyRecent);
+                m_register.GetSegmentLimitsAt(in relativeTestTime, in  m_namedBool,
+                    out IBooleanDateStateSwitch switchKeyRecent, 
+                    out IBooleanDateStateSwitch switchKeyOld );
+                if (switchKeyOld == null) m_mostOldKeyAround.ResetEmpty();
+                else m_mostOldKeyAround.Set(switchKeyOld);
+                if (switchKeyRecent == null) m_mostRecentKeyAround.ResetEmpty();
+                else m_mostRecentKeyAround.Set(switchKeyRecent);
             }
         }
 
@@ -157,7 +173,7 @@ public class TDD_NamedBooleanTimeSwitch : MonoBehaviour
         if (recentRelativeTimeBetween.Ticks > now.Ticks)
             recentRelativeTimeBetween = now;
 
-        m_register.GetAllSwitchDateBetween(in recentRelativeTimeBetween, in oldRelativeTimeBetween
+        m_register.GetAllSwitchKeyBetween(in recentRelativeTimeBetween, in oldRelativeTimeBetween
            , m_namedBool, out IBooleanDateStateSwitch[] sampleBetween);
 
          m_isOldRelativeValide    =  m_register.IsDateTimeInValideTrackZone(in m_namedBool, in oldRelativeTimeBetween);

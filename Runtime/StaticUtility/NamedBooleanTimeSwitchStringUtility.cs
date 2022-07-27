@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class NamedBooleanTimeSwitchStringUtility 
 {
-    public static void GetStringDescriptionByMilliscondsSegment(
+    public static void GetStringDescriptionByMillisecondsSegment(
         in INamedBooleanTimeSwitchRegisterGet target,
         in string namedBooleen,
         out string generatedText,
@@ -15,13 +15,28 @@ public class NamedBooleanTimeSwitchStringUtility
         in int charStopCheckPoint = 100
         )
     {
+
         target.IsBooleanRegistered(in namedBooleen, out bool exist);
         if (!exist)
         {
             generatedText = "xx";
             return;
         }
-        target.HasAnySwitchHappened(in namedBooleen, out bool switchHappened);
+        target.GetCollectionOfSwitch(in namedBooleen, out INamedBooleanTimeSwitchCollectionGet collection);
+        GetStringDescriptionByMillisecondsSegment(in collection, out generatedText, in falseToTrue, in trueToFalse, in charStopCheckPoint);
+
+    }
+
+    public static void GetStringDescriptionByMillisecondsSegment(
+       in INamedBooleanTimeSwitchCollectionGet target,
+       out string generatedText,
+       in string falseToTrue = "▁",
+       in string trueToFalse = "▔",
+       in int charStopCheckPoint = 100
+       )
+    {
+        
+        target.HasAnySwitchHappened(out bool switchHappened);
         if (!switchHappened)
         {
 
@@ -29,8 +44,7 @@ public class NamedBooleanTimeSwitchStringUtility
             return;
         }
 
-        target.GetAllSwitchDateFor(
-            in namedBooleen,
+        target.GetAllSwitchKeyInCollection(
             out IBooleanDateStateSwitch[] sample);
         StringBuilder sb = new StringBuilder();
 
@@ -57,8 +71,7 @@ public class NamedBooleanTimeSwitchStringUtility
 
         sb.Append('|');
 
-        target.GetLimitesSwitchOfBoolean(
-           in namedBooleen,
+        target.GetKeyAtBordersOfCollection(
            out IBooleanDateStateSwitch recentLimit,
            out IBooleanDateStateSwitch oldLimit);
         sb.Append(oldLimit.TurnedTrue() ? falseToTrue : trueToFalse);
@@ -72,16 +85,33 @@ public class NamedBooleanTimeSwitchStringUtility
         in float charPerSeconds = 1,
         in string falseToTrue = "▁",
         in string trueToFalse = "▔",
-        in int charStopCheckPoint=100
+        in int charStopCheckPoint = 100
         )
     {
         target.IsBooleanRegistered(in namedBooleen, out bool exist);
-        if (!exist) {
+        if (!exist)
+        {
             generatedText = "xx";
             return;
         }
-        target.HasAnySwitchHappened(in namedBooleen, out bool switchHappened);
-        if (!switchHappened) {
+        target.GetCollectionOfSwitch(in namedBooleen, out INamedBooleanTimeSwitchCollectionGet collection);
+        GetStringDescriptionCharPerSeconds(in collection, out generatedText,
+            in charPerSeconds, in falseToTrue, in trueToFalse, in charStopCheckPoint);
+    }
+
+    public static void GetStringDescriptionCharPerSeconds(
+        in INamedBooleanTimeSwitchCollectionGet target,
+        out string generatedText,
+       in float charPerSeconds = 1,
+       in string falseToTrue = "▁",
+       in string trueToFalse = "▔",
+       in int charStopCheckPoint = 100
+       )
+    {
+        
+        target.HasAnySwitchHappened( out bool switchHappened);
+        if (!switchHappened)
+        {
 
             generatedText = "--";
             return;
@@ -89,8 +119,7 @@ public class NamedBooleanTimeSwitchStringUtility
 
 
 
-        target.GetAllSwitchDateFor(
-            in namedBooleen,
+        target.GetAllSwitchKeyInCollection(
             out IBooleanDateStateSwitch[] sample);
         StringBuilder sb = new StringBuilder();
 
@@ -126,8 +155,7 @@ public class NamedBooleanTimeSwitchStringUtility
 
         sb.Append('|');
 
-        target.GetLimitesSwitchOfBoolean(
-           in namedBooleen,
+        target.GetKeyAtBordersOfCollection(
            out IBooleanDateStateSwitch recentLimit,
            out IBooleanDateStateSwitch oldLimit);
         sb.Append(oldLimit.TurnedTrue() ? falseToTrue : trueToFalse);

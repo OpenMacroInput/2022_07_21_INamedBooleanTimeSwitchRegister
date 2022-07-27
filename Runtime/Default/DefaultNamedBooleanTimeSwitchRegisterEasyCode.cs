@@ -7,7 +7,7 @@ using UnityEngine;
 public class DefaultNamedBooleanTimeSwitchRegisterEasyCode : INamedBooleanTimeSwitchRegister
 {
     public int m_maxKeyPerList = 512;
-    public Dictionary<string, BooleanDateStateSwitchKeyClampList> m_register = new Dictionary<string, BooleanDateStateSwitchKeyClampList>();
+    public Dictionary<string, BooleandDateSwitchCollectionDefault> m_register = new Dictionary<string, BooleandDateSwitchCollectionDefault>();
     public DateTime m_createdDate;
     public bool m_stateWhenCreated;
 
@@ -21,57 +21,56 @@ public class DefaultNamedBooleanTimeSwitchRegisterEasyCode : INamedBooleanTimeSw
     {
         if (!m_register.ContainsKey(namedBoolean))
         {
-            BooleanDateStateSwitchKeyClampList toAdd = new BooleanDateStateSwitchKeyClampList(
+            AAA toAdd = new AAA(
                 m_maxKeyPerList, startValue, DateTime.Now);
             m_register.Add(namedBoolean, toAdd);
         }
     }
 
-    public void GetElapsedTimeInNanoSecondsAt(in DateTime atDate, in string namedboolean, out long nanoSeconds, out  DateTime switchOldestPart)
+    public void GetElapsedTimeAsTicksAt(in DateTime atDate, in string namedboolean, out long nanoSeconds, out  DateTime switchOldestPart)
     {
         GetSegmentLimitsAt(in atDate, in namedboolean, out IBooleanDateStateSwitch recent, out IBooleanDateStateSwitch old);
-        if (recent == null && old == null) {
+        if (recent == null && old == null
+            || recent != null && old == null) {
             throw new Exception("Check that the time is valide before using this methode");
         }
-        if (recent == null && old != null)
+        else if (recent == null && old != null)
         {
             old.GetWhenSwitchHappened(out long o);
             nanoSeconds = DateTime.Now.Ticks - o;
         }
-        else {
+        else  {
             recent.GetWhenSwitchHappened(out long r);
             old.GetWhenSwitchHappened(out long o);
             nanoSeconds = r - o;
         }
-        
         old.GetWhenSwitchHappened(out switchOldestPart);
-
     }
 
-    public void GetLimitesSwitchOfBoolean(in string namedboolean, out IBooleanDateStateSwitch mostRecent, out IBooleanDateStateSwitch switchMostOld)
+    public void GetKeyAtBordersOfBoolean(in string namedboolean, out IBooleanDateStateSwitch mostRecent, out IBooleanDateStateSwitch switchMostOld)
     {
-        m_register[namedboolean].GetMostRecent(out BooleanDateStateSwitchKey recent);
+        m_register[namedboolean].GetMostRecentKey(out IBooleanDateStateSwitch recent);
         mostRecent = recent;
-        m_register[namedboolean].GetMostFarInTime(out BooleanDateStateSwitchKey old);
+        m_register[namedboolean].GetMostOldestKey(out IBooleanDateStateSwitch old);
         switchMostOld = old;
     }
 
 
-    public void GetAllSwitchDateBetween(in DateTime from, in DateTime to, in string namedboolean, out IBooleanDateStateSwitch[] sample)
+    public void GetAllSwitchKeyBetween(in DateTime from, in DateTime to, in string namedboolean, out IBooleanDateStateSwitch[] sample)
     {
-               m_register[namedboolean].GetAllSwitchDateBetween(in from, in to, out sample);
+               m_register[namedboolean].GetAllSwitchKeyBetween(in from, in to, out sample);
     }
    
 
 
-    public void GetStartExistingInitialState(in string namedboolean, out bool isTrueValueAtStartExisting)
+    public void GetCollectionInitialState(in string namedboolean, out bool isTrueValueAtStartExisting)
     {
-        m_register[namedboolean].GetStateWhenCreated(out isTrueValueAtStartExisting);
+        m_register[namedboolean].GetCollectionInitialState(out isTrueValueAtStartExisting);
     }
 
-    public void GetStartExistingTime(in string namedboolean, out DateTime dateAtStartExisting)
+    public void GetCollectionExistingTime(in string namedboolean, out DateTime dateAtStartExisting)
     {
-        m_register[namedboolean].GetDateWhenCreated(out dateAtStartExisting);
+        m_register[namedboolean].GetCollectionExistingTime(out dateAtStartExisting);
     }
 
     public void GetStateAt(in DateTime atDate, in string namedboolean, out bool state)
@@ -81,7 +80,7 @@ public class DefaultNamedBooleanTimeSwitchRegisterEasyCode : INamedBooleanTimeSw
 
     public void GetStateNow(in string namedboolean, out bool state)
     {
-        m_register[namedboolean].GetState(out state);
+        m_register[namedboolean].GetStateNow(out state);
     }
     public void GetSwitchCount(in string namedboolean, out int switchCount)
     {
@@ -91,55 +90,14 @@ public class DefaultNamedBooleanTimeSwitchRegisterEasyCode : INamedBooleanTimeSw
 
     public void GetSwitchCountAndLimitBetween(in DateTime from, in DateTime to, in string namedboolean, out bool mostRecentValueStart, out bool mostOldValueStart, out int switchToTrue, out int switchToFalse)
     {
-        switchToTrue = 0;
-        switchToFalse = 0;
-        GetAllSwitchDateBetween(in from, in to, in namedboolean, out IBooleanDateStateSwitch[] sample);
-        if (sample == null || sample.Length == 0)
-        {
-            switchToTrue = 0;
-            switchToFalse = 0;
-            // If sample is null the it is out invalide or in a true or false state all along.
-            // If invalide, they should be an exception trigger somewhere. So it is consider a "flat line"
-            GetStateAt(in from, in namedboolean, out bool state);
-            mostOldValueStart = state;
-            mostRecentValueStart = state;
-            return;
-        }
-
-        mostOldValueStart = false;
-        mostRecentValueStart = false;
-        for (int i = 0; i < sample.Length; i++)
-        {
-            if (i == 0) {
-                mostRecentValueStart = sample[0].TurnedTrue();
-            }
-            if (sample[i].TurnedTrue())
-            {
-                switchToTrue++;
-            }
-            else if (sample[i].TurnedFalse())
-            {
-                switchToFalse++;
-            }
-            if (i == sample.Length - 1)
-            {
-                mostOldValueStart = sample[sample.Length - 1].WasTrue();
-            }
-        }
+        m_register[namedboolean].GetSwitchCountAndLimitBetween(
+            in from, in to,  out  mostRecentValueStart, out  mostOldValueStart, out  switchToTrue, out  switchToFalse);
     }
 
-    public void GetSwitchCountBetween(in DateTime from, in DateTime to, in string namedboolean, out int switchToTrue, out int switchToFalse)
+    public void GetSwitchCountBetween(in DateTime from, in DateTime to, 
+        in string namedboolean, out int switchToTrue, out int switchToFalse)
     {
-        switchToTrue = 0;
-        switchToFalse = 0;
-        GetAllSwitchDateBetween(in from, in to, in namedboolean, out IBooleanDateStateSwitch[] sample);
-        for (int i = 0; i < sample.Length; i++)
-        {
-            if (sample[i].TurnedTrue())
-                switchToTrue++;
-            else if (sample[i].TurnedFalse())
-                switchToFalse++;
-        }
+        m_register[namedboolean].GetSwitchCountBetween(in from, in to, out  switchToTrue, out  switchToFalse);
     }
 
     public void GetTrueFalseRatio(in DateTime from, in DateTime to, in string namedboolean, out double pourcentTrue)
@@ -175,14 +133,14 @@ public class DefaultNamedBooleanTimeSwitchRegisterEasyCode : INamedBooleanTimeSw
     {
         IsBooleanRegistered(in namedBoolean, out bool exists);
         if (!exists) CreateSlotIfNotExisting(in namedBoolean, in value);
-        else m_register[namedBoolean].SetWithNow(value);
+        else m_register[namedBoolean].SetNow(value);
     }
 
     public void SetNowWhenActionHappened(in DateTime whenItHappened, in string namedBoolean, in bool value)
     {
         IsBooleanRegistered(in namedBoolean, out bool exists);
         if (!exists) CreateSlotIfNotExisting(in namedBoolean, in value);
-        else m_register[namedBoolean].SetWithNow(whenItHappened, value);
+        else m_register[namedBoolean].SetNowWhenActionHappened(whenItHappened, value);
     }
 
     public void SetPastSwitchManually(in DateTime previousDate, in string namedBoolean, in bool newValue)
@@ -197,7 +155,7 @@ public class DefaultNamedBooleanTimeSwitchRegisterEasyCode : INamedBooleanTimeSw
         m_register[namedboolean].IsTimeMoreOlderThatKeys(in atDate, out bool mostOlder);
         if (mostOlder)
         {
-            m_register[namedboolean].GetMostFarInTime(out BooleanDateStateSwitchKey last);
+            m_register[namedboolean].GetMostOldestKey(out IBooleanDateStateSwitch last);
             return last.WasFalse();
         }
         else
@@ -213,7 +171,7 @@ public class DefaultNamedBooleanTimeSwitchRegisterEasyCode : INamedBooleanTimeSw
         m_register[namedboolean].IsTimeMoreOlderThatKeys(in atDate, out bool mostOlder);
         if (mostOlder)
         {
-            m_register[namedboolean].GetMostFarInTime(out BooleanDateStateSwitchKey last);
+            m_register[namedboolean].GetMostOldestKey(out IBooleanDateStateSwitch last);
             return last.WasTrue();
         }
         else { 
@@ -222,14 +180,7 @@ public class DefaultNamedBooleanTimeSwitchRegisterEasyCode : INamedBooleanTimeSw
         }
     }
 
-    public void GetSegmentOldSwitchSideAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateSwitch key)
-    {
-        
-            m_register[namedboolean].GetSegmentOldSideAt(in atDate, out bool found, out int index, out BooleanDateStateSwitchKey target);
-            if (!found || target == null) new Exception("Maybe check first if the date is valide.");
-            key = target;
-    }
-
+   
     
 
     public void GetSegmentLimitsAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateSwitch switchMoreRecent, out IBooleanDateStateSwitch switchMostOld)
@@ -237,12 +188,17 @@ public class DefaultNamedBooleanTimeSwitchRegisterEasyCode : INamedBooleanTimeSw
         GetSegmentOldSwitchSideAt(in atDate, in namedboolean, out switchMostOld);
         GetSegmentRecentSwitchSideAt(in atDate, in namedboolean, out switchMoreRecent);
     }
-
-    public void GetSegmentRecentSwitchSideAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateSwitch switchKeyRecent)
+    public void GetSegmentOldSwitchSideAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateSwitch key)
     {
-        m_register[namedboolean].GetSegmentRecentSideAt(in atDate, out bool found, out int index, out BooleanDateStateSwitchKey recentSide);
-        if (!found) new Exception("Maybe check first if the date is valide.");
-        switchKeyRecent = recentSide;
+
+        m_register[namedboolean].GetSegmentOldSwitchSideAt(in atDate, out key);
+    
+    }
+
+    public void GetSegmentRecentSwitchSideAt(in DateTime atDate, in string namedboolean, out IBooleanDateStateSwitch key)
+    {
+        m_register[namedboolean].GetSegmentRecentSwitchSideAt(in atDate, out key);
+        
     }
 
     public void GetTrueFalseTimeInTick(in DateTime from, in DateTime to,
@@ -265,7 +221,7 @@ public class DefaultNamedBooleanTimeSwitchRegisterEasyCode : INamedBooleanTimeSw
             toOlder = tmp;
         }
 
-        GetAllSwitchDateBetween(in startRecent, in toOlder, in namedboolean, out IBooleanDateStateSwitch[] sample);
+        GetAllSwitchKeyBetween(in startRecent, in toOlder, in namedboolean, out IBooleanDateStateSwitch[] sample);
         long startRecentLong = startRecent.Ticks;
         long startOldLong = toOlder.Ticks;
         nanoSecondsTotalObserved = startRecentLong - startOldLong;
@@ -312,9 +268,45 @@ public class DefaultNamedBooleanTimeSwitchRegisterEasyCode : INamedBooleanTimeSw
         tickTime = r - o;
     }
 
-    public void GetAllSwitchDateFor(in string namedboolean, out IBooleanDateStateSwitch[] sample)
+    public void GetAllSwitchKeyFor(in string namedboolean, out IBooleanDateStateSwitch[] sample)
     {
-        m_register[namedboolean].GetAllSwitchDateInMemory(out sample);
+        m_register[namedboolean].GetAllSwitchKeyInCollection(out sample);
+    }
+
+    public bool IsBeforeFirstKeySwitch(in string namedboolean, in DateTime atDate)
+    {
+        m_register[namedboolean].GetMostRecentKey(out IBooleanDateStateSwitch first);
+        if (first == null) throw new Exception("Check that one key is recorded first");
+        return BooleandDateSwitchCollectionDefault.IsMoreRecentThat(in atDate, in first);
+    }
+
+    public bool IsAfterLastKeySwitch(in string namedboolean, in DateTime atDate)
+    {
+        m_register[namedboolean].GetMostOldestKey(out IBooleanDateStateSwitch first);
+        if (first == null) throw new Exception("Check that one key is recorded first");
+        return BooleandDateSwitchCollectionDefault.IsMoreOldThat(in atDate, in first);
+    }
+
+    public bool IsBetweenFirstAndLastKeySwitch(in string namedboolean, in DateTime atDate)
+    {
+        return !(IsBeforeFirstKeySwitch(in namedboolean, in atDate) || IsAfterLastKeySwitch(in namedboolean, in atDate));
+    }
+
+    public void GetMostRecentKey(in string namedboolean, out IBooleanDateStateSwitch mostRecent)
+    {
+        m_register[namedboolean].GetMostRecentKey(out mostRecent);
+    }
+
+    public void GetMostOldestKey(in string namedboolean, out IBooleanDateStateSwitch switchMostOld)
+    {
+        m_register[namedboolean].GetMostOldestKey(out switchMostOld);
+    }
+
+    public void GetCollectionOfSwitch(in string namedboolean, out INamedBooleanTimeSwitchCollectionGet collection)
+    {
+        if (m_register.ContainsKey( namedboolean))
+            collection = m_register[namedboolean];
+        else collection = null;
     }
 
 
