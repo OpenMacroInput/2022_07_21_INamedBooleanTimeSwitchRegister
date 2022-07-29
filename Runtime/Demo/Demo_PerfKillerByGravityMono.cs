@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PerfKillerByGravityMono : MonoBehaviour
+public class Demo_PerfKillerByGravityMono : MonoBehaviour
 {
     public Rigidbody m_rig;
     public float m_forcePower=1;

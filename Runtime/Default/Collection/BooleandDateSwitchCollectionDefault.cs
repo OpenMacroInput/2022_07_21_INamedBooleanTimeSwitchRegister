@@ -3,21 +3,22 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 /// <summary>
 /// If the methode need to have access to the list it is not generic.
 /// </summary>
 [System.Serializable]
-public class AAA : BooleandDateSwitchCollectionDefault
+public class BooleandDateSwitchCollectionDefault : AbstractBooleandDateSwitchCollectionDefault
 {
-    public List<BooleanDateStateSwitchKey> m_listRecentToPast = new List<BooleanDateStateSwitchKey>();
-    public int m_maxKey = 1024;
+    [SerializeField] List<BooleanDateStateSwitchKey> m_listRecentToPast = new List<BooleanDateStateSwitchKey>();
+    [SerializeField] int m_maxKey = 1024;
 
-    public AAA(int maxKey, bool startValue): base(startValue)
+    public BooleandDateSwitchCollectionDefault(int maxKey, bool startValue): base(startValue)
     {
         m_maxKey = maxKey;
     }
 
-    public AAA(int maxKey, bool startValue, DateTime now) : base( startValue, now)
+    public BooleandDateSwitchCollectionDefault(int maxKey, bool startValue, DateTime now) : base( startValue, now)
     {
         m_maxKey = maxKey;
     }
@@ -265,6 +266,12 @@ public class AAA : BooleandDateSwitchCollectionDefault
     public override void GetAllSwitchKeyInCollection(out IBooleanDateStateSwitch[] sample)
     {
         sample = m_listRecentToPast.ToArray();
+    }
+
+    public override void GetMaxSize(out bool hasMaxSwitchSizeLimit, out int maxSwitchSizeLimit)
+    {
+        hasMaxSwitchSizeLimit = true;
+        maxSwitchSizeLimit = m_maxKey;
     }
     #endregion
 }

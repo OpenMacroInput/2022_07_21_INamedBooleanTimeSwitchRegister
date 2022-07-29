@@ -3,22 +3,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 //INamedBooleanTimeSwitchCollectionGet
 [System.Serializable]
-public abstract class BooleandDateSwitchCollectionDefault: INamedBooleanTimeSwitchCollection
+public abstract class AbstractBooleandDateSwitchCollectionDefault: INamedBooleanTimeSwitchCollection
 {
-
-
-
-    public bool m_whenCreatedValue;
-    public DateTime m_whenCreatedDate;
-    public BooleandDateSwitchCollectionDefault(bool startValue)
+    [SerializeField] bool m_whenCreatedValue;
+    [SerializeField] DateTime m_whenCreatedDate;
+    public AbstractBooleandDateSwitchCollectionDefault(bool startValue)
     {
         m_whenCreatedValue = startValue;
     }
 
-    public BooleandDateSwitchCollectionDefault( bool startValue, DateTime now) : this( startValue)
+    public AbstractBooleandDateSwitchCollectionDefault( bool startValue, DateTime now) : this( startValue)
     {
         m_whenCreatedDate = now;
     }
@@ -225,13 +223,20 @@ public abstract class BooleandDateSwitchCollectionDefault: INamedBooleanTimeSwit
         GetTrueFalseTimeInTick(from, to, out long nanoTrue, out long nanoFalse, out long total);
         pourcentTrue = ((double)nanoTrue) / ((double)total);
     }
-    
+
+    public abstract void GetMaxSize(out bool hasMaxSwitchSizeLimit, out int maxSwitchSizeLimit);
+
+    public int a;
+    public int b;
     public void GetTrueFalseTimeInTick(in DateTime startRecent, in DateTime toOlder,
          out long nanoSecondTrue, out long nanoSecondFalse,
          out long nanoSecondsTotalObserved)
     {
         DateTimeSwitchUtility.GetDateLong(in startRecent, in toOlder, out long startRecentLong, out long startOldLong);
         GetAllSwitchKeyBetween(in startRecent, in toOlder, out IBooleanDateStateSwitch[] sample);
+        GetMaxSize(out bool hasMaxSwitchSizeLimit, out int maxLenght);
+        if (hasMaxSwitchSizeLimit && sample.Length >= maxLenght)
+            throw new Exception("The code don't manage situation where the number of swithc is equal or more that sample.");
         nanoSecondsTotalObserved = startRecentLong - startOldLong;
         nanoSecondTrue = 0;
         nanoSecondFalse = 0;
@@ -240,7 +245,7 @@ public abstract class BooleandDateSwitchCollectionDefault: INamedBooleanTimeSwit
             IBooleanDateStateSwitch start = sample[0];
             sample[0].GetWhenSwitchHappened(out long ls);
             long statl = startRecent.Ticks - ls;
-            if (sample[0].TurnedFalse())
+            if (sample[0].TurnedTrue())
                 nanoSecondTrue += statl;
             else nanoSecondFalse += statl;
             if (sample.Length > 1)
@@ -254,16 +259,17 @@ public abstract class BooleandDateSwitchCollectionDefault: INamedBooleanTimeSwit
                 }
             }
 
-            sample[sample.Length - 1].GetWhenSwitchHappened(out long le);
+            sample[sample.Length - 1].GetWhenSwitchHappened(out long los);
+            long statold = los-toOlder.Ticks ;
             if (sample[sample.Length - 1].WasTrue())
-                nanoSecondTrue += le;
-            else nanoSecondFalse += le;
+                nanoSecondTrue += statold;
+            else nanoSecondFalse += statold;
         }
         else
         {
             nanoSecondsTotalObserved = startRecentLong - startOldLong;
-            DateTime d = new DateTime(startOldLong + nanoSecondsTotalObserved / 2);
-            GetStateAt(in d, out bool state);
+            GetSegmentOldSwitchSideAt(in toOlder, out IBooleanDateStateSwitch switchKey);
+            bool state = switchKey.TurnedTrue();
             nanoSecondTrue = state ? nanoSecondsTotalObserved : 0;
             nanoSecondFalse = state ? 0 : nanoSecondsTotalObserved;
         }
@@ -327,6 +333,7 @@ public abstract class BooleandDateSwitchCollectionDefault: INamedBooleanTimeSwit
 
     public void GetElapsedTimeAsTicksAt(in DateTime atDate, out long ticksDuration, out DateTime switchOldestPart)
     {
+
 
         GetSegmentOldSwitchSideAt(in atDate, out IBooleanDateStateSwitch okey);
         GetSegmentRecentSwitchSideAt(in atDate, out IBooleanDateStateSwitch rkey);

@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class TDD_NamedBooleanTimeSwitch : MonoBehaviour
 {
-    public INamedBooleanTimeSwitchRegister m_register = new DefaultNamedBooleanTimeSwitchRegisterEasyCode();
+    public INamedBooleanTimeSwitchRegister m_register = new DefaultNamedBooleanTimeSwitchRegister();
 
     public int m_maxQueueLenght = 16;
     public string m_namedBool = "Space";
@@ -62,7 +62,7 @@ public class TDD_NamedBooleanTimeSwitch : MonoBehaviour
 
     void Start()
     {
-        m_register = new DefaultNamedBooleanTimeSwitchRegisterEasyCode(m_maxQueueLenght);
+        m_register = new DefaultNamedBooleanTimeSwitchRegister(m_maxQueueLenght);
         m_register.CreateSlotIfNotExisting(in m_namedBool, in m_initialState);
         m_register.SetNow(in m_namedBool, in m_initialState);
 

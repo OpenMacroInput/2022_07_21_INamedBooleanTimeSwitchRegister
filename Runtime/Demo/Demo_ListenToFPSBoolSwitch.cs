@@ -57,7 +57,7 @@ public class BooleanCollectionBean : INamedBooleanTimeSwitchCollectionHolder
 {
     public int m_maxKey = 64;
     public bool m_startValue = false;
-    public AAA m_history= new AAA(64, false);
+    public BooleandDateSwitchCollectionDefault m_history= new BooleandDateSwitchCollectionDefault(64, false);
     public bool m_isInit;
     public void ResetWith(int maxKey, bool startValue) {
         m_maxKey = maxKey;
@@ -66,7 +66,7 @@ public class BooleanCollectionBean : INamedBooleanTimeSwitchCollectionHolder
     public void Init() {
         if (!m_isInit) {
             m_isInit = true;
-            m_history = new AAA(m_maxKey, m_startValue);
+            m_history = new BooleandDateSwitchCollectionDefault(m_maxKey, m_startValue);
         }
     }
 

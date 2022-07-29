@@ -148,27 +148,26 @@ public interface IBooleanDateStateSwitch
 }
 
 
-public interface IBooleanDateStateDualSwitchSegment
-{
-    public void GetSwitchMostRecent(out IBooleanDateStateSwitch switchType);
-    public void GetSwitchMostOlder(out IBooleanDateStateSwitch switchType);
-    public void GetDurationInNanoseconds(out long duration);
-    public void GetDurationInMilliseconds(out double milliseconds);
-    public void GetDurationInMilliseconds(out int millisecondsMax24Day);
-    public bool WasTrueDuringDuration();
-    public bool IsTrueAfterSwitches();
-    public bool IsTrueBeforeSwitches();
-
-}
+//public interface IBooleanDateStateDualSwitchSegment
+//{
+//    public void GetSwitchMostRecent(out IBooleanDateStateSwitch switchType);
+//    public void GetSwitchMostOlder(out IBooleanDateStateSwitch switchType);
+//    public void GetDurationInNanoseconds(out long duration);
+//    public void GetDurationInMilliseconds(out double milliseconds);
+//    public void GetDurationInMilliseconds(out int millisecondsMax24Day);
+//    public bool WasTrueDuringDuration();
+//    public bool IsTrueAfterSwitches();
+//    public bool IsTrueBeforeSwitches();
+//}
 
 /// //////////////////////////////// IMPLEMENTAITON DATE PART
 
 
-public interface IBooleanDateStateSwitchUtility
-{
+//public interface IBooleanDateStateSwitchUtility
+//{
 
-    // public bool WasOnlyTrue(in IBooleanDateStateSwitch[] sample, in )
-}
+//    // public bool WasOnlyTrue(in IBooleanDateStateSwitch[] sample, in )
+//}
 
 //public interface IBooleanDateStateSwitchInContext: IBooleanDateStateSwitch
 //{
